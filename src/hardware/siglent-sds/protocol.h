@@ -31,7 +31,14 @@
 //#define ACQ_BUFFER_SIZE (6000000)
 #define ACQ_BUFFER_SIZE (18000000)
 
-#define SIGLENT_HEADER_SIZE 363
+// this does not seem to be correct for the 1104X-E
+// it is kind of wrong to hard code this, as the length of the header is part of the protocol
+// needs some rewrite of the header read procedure
+// 0f is the initial offset to the header
+// 015a is the header block length encoded at offser 36
+// 36b0 is the data block length for 14k sample
+//define SIGLENT_HEADER_SIZE 363
+#define SIGLENT_HEADER_SIZE 361
 #define SIGLENT_DIG_HEADER_SIZE 346
 
 /* Maximum number of samples to retrieve at once. */

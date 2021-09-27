@@ -336,6 +336,7 @@ static int siglent_sds_read_header(struct sr_dev_inst *sdi)
 	devc->num_samples = data_length;
 
 	sr_dbg("Received data block header: '%s' -> block length %d.", buf, ret);
+	sr_dbg("Received data length: %ld.", data_length);
 
 	return ret;
 }
@@ -565,8 +566,8 @@ SR_PRIV int siglent_sds_receive(int fd, int revents, void *cb_data)
 					devc->buffer += devc->block_header_size;
 					len = devc->num_samples;
 				} else {
-					sr_dbg("Requesting: %" PRIu64 " bytes.", devc->num_samples - devc->num_block_bytes);
-					len = sr_scpi_read_data(scpi, (char *)devc->buffer, devc->num_samples-devc->num_block_bytes);
+					sr_dbg("Requesting: %" PRIu64 " bytes.", devc->num_samples - devc->num_block_bytes + SIGLENT_HEADER_SIZE);
+					len = sr_scpi_read_data(scpi, (char *)devc->buffer, devc->num_samples-devc->num_block_bytes + SIGLENT_HEADER_SIZE);
 					if (len == -1) {
 						sr_err("Read error, aborting capture.");
 						std_session_send_df_frame_end(sdi);
@@ -609,7 +610,9 @@ SR_PRIV int siglent_sds_receive(int fd, int revents, void *cb_data)
 					g_array_free(data, TRUE);
 				}
 				len = 0;
-				if (devc->num_samples == (devc->num_block_bytes - SIGLENT_HEADER_SIZE)) {
+				// the num block bytes are counted against the samples
+				// last 2 bytes are 0a0a characters
+				if (devc->num_samples == (devc->num_block_bytes-SIGLENT_HEADER_SIZE)) {
 					sr_dbg("Transfer has been completed.");
 					devc->num_header_bytes = 0;
 					devc->num_block_bytes = 0;
