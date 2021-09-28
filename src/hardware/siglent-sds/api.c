@@ -382,8 +382,11 @@ static int dev_open(struct sr_dev_inst *sdi)
 }
 
 static int dev_close(struct sr_dev_inst *sdi)
-{
-	return sr_scpi_close(sdi->conn);
+{ 
+	int result; 
+	result = sr_scpi_close(sdi->conn);
+	(void)nanosleep((const struct timespec[]){{0, 250000000L}}, NULL);;
+	return result;
 }
 
 static int config_get(uint32_t key, GVariant **data,

@@ -256,13 +256,8 @@ static int scpi_tcp_read_complete(void *priv)
 static int scpi_tcp_close(struct sr_scpi_dev_inst *scpi)
 {
 	struct scpi_tcp *tcp = scpi->priv;
-    int result = 0;
 	if (close(tcp->socket) < 0)
 		return SR_ERR;
-
-	// the siglent tcp stack seems to have issues with having 2 TCP connections being open at the same time, 
-	// so we need to wait a bit till this connection closes
-	result = usleep(250000);
 	return SR_OK;
 }
 
