@@ -473,7 +473,7 @@ SR_PRIV int siglent_sds_receive(int fd, int revents, void *cb_data)
 	int len, i;
 	float wait;
 	gboolean read_complete = FALSE;
-	char *response;
+	GString* response=g_string_new(NULL);
 
 	(void)fd;
 
@@ -624,7 +624,7 @@ SR_PRIV int siglent_sds_receive(int fd, int revents, void *cb_data)
 					}
 					devc->num_block_read = 0;
 					// read extra LF character at end of data transfer
-                    (void)sr_scpi_read_response(scpi,&response,1);
+                    (void)sr_scpi_read_response(scpi,response,1);
 				} else {
 					sr_dbg("%" PRIu64 " of %" PRIu64 " block bytes read.",
 						devc->num_block_bytes, devc->num_samples);
