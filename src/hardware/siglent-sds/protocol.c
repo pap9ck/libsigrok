@@ -473,7 +473,6 @@ SR_PRIV int siglent_sds_receive(int fd, int revents, void *cb_data)
 	int len, i;
 	float wait;
 	gboolean read_complete = FALSE;
-	GString* response=g_string_new(NULL);
 
 	(void)fd;
 
@@ -616,6 +615,14 @@ SR_PRIV int siglent_sds_receive(int fd, int revents, void *cb_data)
 					devc->num_header_bytes = 0;
 					devc->num_block_bytes = 0;
 					read_complete = TRUE;
+					// read extra 2 LF character at end of data transfer
+					len = sr_scpi_read_data(scpi, (char *)devc->buffer, 2);
+					if (len == -1) {
+						sr_err("Read error, aborting capture.");
+						std_session_send_df_frame_end(sdi);
+						sdi->driver->dev_acquisition_stop(sdi);
+						return TRUE;
+					}
 					if (!sr_scpi_read_complete(scpi)) {
 						sr_err("Read should have been completed.");
 						std_session_send_df_frame_end(sdi);
@@ -623,8 +630,6 @@ SR_PRIV int siglent_sds_receive(int fd, int revents, void *cb_data)
 						return TRUE;
 					}
 					devc->num_block_read = 0;
-					// read extra LF character at end of data transfer
-                    (void)sr_scpi_read_response(scpi,response,1);
 				} else {
 					sr_dbg("%" PRIu64 " of %" PRIu64 " block bytes read.",
 						devc->num_block_bytes, devc->num_samples);
